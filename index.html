@@ -729,14 +729,15 @@ function membersHTML(){
 async function saveMembersToDB(){
   try {
     setSyncBadge('loading');
-    const rows = members.map((m,i)=>({
-      id: m.dbId||undefined,
-      name:m.name, absent:m.absent, position:i
-    }));
-    // delete all and reinsert for simplicity
-    await sbFetch('members', {method:'DELETE', headers:{'Content-Type':'application/json'}, prefer:'return=minimal', body:''});
-    const inserted = await sbPost('members', rows.map(r=>({name:r.name,absent:r.absent,position:r.position})));
-    members = inserted.map((r,i)=>({name:r.name,absent:r.absent,position:r.position,dbId:r.id}));
+    for(let i=0;i<members.length;i++){
+      const m=members[i];
+      if(m.dbId){
+        await sbPatch('members','id=eq.'+m.dbId, {name:m.name, absent:m.absent, position:i});
+      } else {
+        const r = await sbPost('members', [{name:m.name, absent:m.absent, position:i}]);
+        if(Array.isArray(r)&&r[0]) members[i].dbId=r[0].id;
+      }
+    }
     setSyncBadge('ok');
   } catch(e){ console.error(e); setSyncBadge('err'); }
 }
