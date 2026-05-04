@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Economist Reading Group</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red:#E3120B; --dark:#1a1a1a; --mid:#555; --light:#f5f0e8;
+  --cream:#faf7f2; --border:#ddd4be; --accent:#8B0000;
+  --today-bg:#FFF9C4; --today-bd:#F9A825;
+  --done-bg:#E8F5E9;  --done-bd:#388E3C;
+  --stop-bg:#FCE4EC;  --stop-bd:#C62828;
+  --warn:#FF6B35; --warn-bg:#FFF3EE;
+  --blue:#1565C0; --blue-bg:#E3F2FD;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--cream);font-family:'Source Serif 4',Georgia,serif;color:var(--dark);min-height:100vh;}
+
+/* HEADER */
+header{background:var(--red);color:white;border-bottom:3px solid var(--accent);}
+.hinner{max-width:960px;margin:0 auto;padding:14px 24px 12px;display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+.hleft{display:flex;align-items:flex-end;gap:10px;}
+.he{font-family:'Playfair Display',serif;font-size:48px;font-weight:900;line-height:1;opacity:.13;}
+h1{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;line-height:1.2;}
+.hsub{font-size:10px;opacity:.75;letter-spacing:.1em;text-transform:uppercase;margin-top:2px;}
+.hright{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.obadge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);border-radius:4px;padding:6px 11px;font-size:11px;line-height:1.7;cursor:default;}
+.obadge .ol{opacity:.65;text-transform:uppercase;font-size:9px;letter-spacing:.1em;}
+.obadge .on{font-weight:600;font-size:11px;}
+.memberbtn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:3px;padding:4px 10px;font-size:10px;color:white;cursor:pointer;font-family:'Source Serif 4',serif;letter-spacing:.05em;transition:background .15s;}
+.memberbtn:hover{background:rgba(255,255,255,.3);}
+
+/* TABS */
+.navwrap{max-width:960px;margin:0 auto;background:var(--dark);}
+.wtabs{display:flex;overflow-x:auto;scrollbar-width:none;}
+.wtabs::-webkit-scrollbar{display:none;}
+.wt{flex-shrink:0;padding:9px 16px;cursor:pointer;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.42);border-bottom:3px solid transparent;transition:all .18s;white-space:nowrap;font-family:'Source Serif 4',serif;}
+.wt:hover{color:rgba(255,255,255,.82);}
+.wt.active{color:white;border-bottom-color:var(--red);background:rgba(255,255,255,.05);}
+.wt.newtab{color:rgba(255,255,255,.32);}
+.wt.newtab:hover{color:rgba(255,255,255,.78);}
+.wt.settab{color:rgba(255,255,255,.32);}
+.wt.settab:hover{color:rgba(255,255,255,.78);}
+
+/* MAIN */
+main{max-width:960px;margin:0 auto;padding:0 24px 60px;}
+
+/* WEEK HEADER */
+.whead{display:flex;align-items:baseline;justify-content:space-between;border-bottom:2.5px solid var(--dark);padding:20px 0 10px;margin-bottom:4px;flex-wrap:wrap;gap:10px;}
+.wdate{font-family:'Playfair Display',serif;font-size:25px;font-weight:700;}
+.wmeta{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);}
+
+/* MODE BAR */
+.modebar{display:flex;gap:7px;margin:14px 0 0;align-items:center;flex-wrap:wrap;}
+.mbtn{padding:5px 13px;border-radius:20px;font-size:10px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;border:1.5px solid var(--border);background:white;color:var(--mid);font-family:'Source Serif 4',serif;transition:all .15s;}
+.mbtn:hover{border-color:var(--dark);color:var(--dark);}
+.mbtn.active{background:var(--dark);color:white;border-color:var(--dark);}
+.mbtn.leader{background:var(--red);color:white;border-color:var(--red);}
+.mbtn.leader:hover{background:var(--accent);}
+.msep{width:1px;height:18px;background:var(--border);margin:0 3px;}
+
+/* LEGEND */
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0 0;font-size:11px;color:var(--mid);}
+.ldot{width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block;margin-right:4px;}
+
+/* MEMBER CARD (view) */
+.mgrid{margin-top:4px;}
+.mcard{display:flex;border-bottom:1px solid var(--border);padding:20px 0;align-items:flex-start;}
+.mcard:last-child{border-bottom:none;}
+.mnamecol{width:106px;flex-shrink:0;padding-right:16px;padding-top:2px;}
+.mname{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;display:block;}
+.mord{display:inline-block;background:var(--red);color:white;font-size:9px;font-weight:700;padding:1px 5px;border-radius:2px;margin-top:4px;letter-spacing:.03em;}
+.mabsent{font-size:9px;color:#bbb;display:block;margin-top:3px;font-style:italic;}
+.artscol{flex:1;display:flex;flex-direction:column;gap:9px;}
+
+/* ARTICLE ITEM */
+.aitem{border-radius:5px;padding:10px 12px;border-left:3px solid var(--border);background:white;transition:background .18s,border-color .18s;}
+.aitem.st-today{background:var(--today-bg);border-left-color:var(--today-bd);}
+.aitem.st-done{background:var(--done-bg);border-left-color:var(--done-bd);}
+.aitem.st-stopped{background:var(--stop-bg);border-left-color:var(--stop-bd);}
+.asec{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--red);font-weight:600;margin-bottom:2px;}
+.asub{color:var(--mid);font-weight:400;}
+.atitle a{font-size:13px;color:var(--dark);text-decoration:none;font-style:italic;line-height:1.4;transition:color .15s;}
+.atitle a:hover{color:var(--red);text-decoration:underline;}
+.atitle span{font-size:13px;font-style:italic;line-height:1.4;color:var(--dark);}
+.ameta{display:flex;align-items:center;gap:7px;margin-top:4px;flex-wrap:wrap;}
+.atime{font-size:10px;color:#999;}
+.atime::before{content:'🕐 ';}
+.sbadge{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:9px;}
+.sbadge.today{background:var(--today-bd);color:white;}
+.sbadge.done{background:var(--done-bd);color:white;}
+.sbadge.stopped{background:var(--stop-bd);color:white;}
+.duptag{background:var(--warn);color:white;font-size:9px;padding:1px 5px;border-radius:2px;font-weight:700;text-transform:uppercase;}
+
+/* STATUS PICKER */
+.spicker{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap;}
+.spbtn{padding:3px 9px;border-radius:11px;font-size:9px;font-weight:700;cursor:pointer;border:1.5px solid;font-family:'Source Serif 4',serif;letter-spacing:.04em;text-transform:uppercase;transition:all .13s;}
+.spbtn.sn{border-color:var(--border);color:var(--mid);background:white;}
+.spbtn.sn.sel{background:var(--mid);color:white;border-color:var(--mid);}
+.spbtn.st{border-color:var(--today-bd);color:var(--today-bd);background:white;}
+.spbtn.st.sel{background:var(--today-bd);color:white;}
+.spbtn.sd{border-color:var(--done-bd);color:var(--done-bd);background:white;}
+.spbtn.sd.sel{background:var(--done-bd);color:white;}
+.spbtn.ss{border-color:var(--stop-bd);color:var(--stop-bd);background:white;}
+.spbtn.ss.sel{background:var(--stop-bd);color:white;}
+
+/* DUP WARNING */
+.dupwarn{background:var(--warn-bg);border:1.5px solid var(--warn);border-radius:4px;padding:12px 14px;margin:13px 0 0;display:flex;gap:9px;font-size:12px;}
+.dupwarn .wi{font-size:16px;flex-shrink:0;}
+.dupwarn strong{color:var(--warn);display:block;margin-bottom:3px;}
+.duprow{font-size:11px;color:var(--mid);padding-left:7px;border-left:2px solid var(--warn);margin-bottom:2px;}
+
+/* INPUT PANEL */
+.ipanel{margin-top:20px;}
+.iphead{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--red);border-bottom:2px solid var(--red);padding-bottom:7px;margin-bottom:18px;}
+.mib{border:1.5px solid var(--border);border-radius:5px;margin-bottom:15px;overflow:hidden;}
+.mibh{display:flex;align-items:center;justify-content:space-between;background:var(--light);padding:9px 15px;cursor:pointer;user-select:none;}
+.mibh h3{font-family:'Playfair Display',serif;font-size:15px;}
+.mibh .arr{font-size:11px;color:var(--mid);transition:transform .18s;}
+.mibh.open .arr{transform:rotate(180deg);}
+.mibb{padding:14px;display:none;background:white;}
+.mibb.open{display:block;}
+.arow{background:var(--light);border:1px solid var(--border);border-radius:4px;padding:13px;margin-bottom:9px;position:relative;}
+.arow .rmb{position:absolute;top:7px;right:9px;background:none;border:none;cursor:pointer;color:#bbb;font-size:15px;}
+.arow .rmb:hover{color:var(--red);}
+label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--mid);margin-bottom:3px;font-weight:600;margin-top:7px;}
+label:first-of-type{margin-top:0;}
+input[type=text],input[type=number]{width:100%;padding:7px 9px;border:1.5px solid var(--border);background:white;font-family:'Source Serif 4',serif;font-size:13px;color:var(--dark);border-radius:3px;outline:none;transition:border-color .15s;}
+input[type=text]:focus,input[type=number]:focus{border-color:var(--red);}
+select{width:100%;padding:7px 9px;border:1.5px solid var(--border);background:white;font-family:'Source Serif 4',serif;font-size:13px;color:var(--dark);border-radius:3px;outline:none;transition:border-color .15s;cursor:pointer;}
+select:focus{border-color:var(--red);}
+.frow2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.frow3{display:grid;grid-template-columns:1fr 1fr 110px;gap:9px;}
+.addbtn{background:white;border:1px dashed var(--border);padding:7px 14px;font-size:11px;cursor:pointer;color:var(--mid);border-radius:3px;font-family:'Source Serif 4',serif;transition:all .17s;width:100%;text-align:center;margin-top:3px;}
+.addbtn:hover{background:var(--red);color:white;border-color:var(--red);}
+.savebtn{background:var(--red);color:white;border:none;padding:11px 26px;font-family:'Playfair Display',serif;font-size:14px;font-weight:700;cursor:pointer;border-radius:3px;letter-spacing:.04em;transition:background .18s;margin-top:5px;}
+.savebtn:hover{background:var(--accent);}
+.cancelbtn{background:var(--mid);color:white;border:none;padding:11px 20px;font-family:'Playfair Display',serif;font-size:14px;font-weight:700;cursor:pointer;border-radius:3px;margin-left:8px;}
+.cancelbtn:hover{background:#333;}
+
+/* ── MEMBER SETTINGS PAGE ── */
+.settingspage{margin-top:24px;max-width:680px;}
+.shead{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;border-bottom:2.5px solid var(--dark);padding-bottom:10px;margin-bottom:22px;}
+.stabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
+.stab{padding:6px 16px;border-radius:20px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1.5px solid var(--border);background:white;color:var(--mid);font-family:'Source Serif 4',serif;transition:all .15s;}
+.stab.active{background:var(--dark);color:white;border-color:var(--dark);}
+
+/* order list */
+.orderlist{background:white;border:1.5px solid var(--border);border-radius:5px;overflow:hidden;margin-bottom:18px;}
+.orderitem{display:flex;align-items:center;gap:12px;padding:11px 15px;border-bottom:1px solid var(--border);transition:background .12s;}
+.orderitem:last-child{border-bottom:none;}
+.orderitem:hover{background:var(--light);}
+.draghandle{color:#ccc;cursor:grab;font-size:16px;user-select:none;flex-shrink:0;}
+.draghandle:active{cursor:grabbing;}
+.onum{width:22px;height:22px;border-radius:50%;background:var(--red);color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.oname{flex:1;font-family:'Playfair Display',serif;font-size:15px;}
+.absent-toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mid);}
+.toggle-sw{position:relative;display:inline-block;width:32px;height:18px;}
+.toggle-sw input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:18px;transition:.2s;}
+.toggle-slider:before{position:absolute;content:"";height:12px;width:12px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;}
+.toggle-sw input:checked + .toggle-slider{background:var(--warn);}
+.toggle-sw input:checked + .toggle-slider:before{transform:translateX(14px);}
+.move-btns{display:flex;gap:4px;flex-shrink:0;}
+.movebtn{width:24px;height:24px;border-radius:3px;border:1px solid var(--border);background:white;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:var(--mid);transition:all .12s;}
+.movebtn:hover{background:var(--dark);color:white;border-color:var(--dark);}
+.movebtn:disabled{opacity:.3;cursor:not-allowed;}
+
+/* add/remove member */
+.addmember-row{display:flex;gap:8px;margin-bottom:22px;align-items:flex-end;flex-wrap:wrap;}
+.addmember-row input{flex:1;min-width:160px;}
+.addmember-row .addbtn2{background:var(--dark);color:white;border:none;padding:9px 18px;font-size:12px;cursor:pointer;border-radius:3px;font-family:'Source Serif 4',serif;white-space:nowrap;transition:background .15s;}
+.addmember-row .addbtn2:hover{background:var(--accent);}
+.delbtn{width:26px;height:26px;border-radius:3px;border:1.5px solid #eee;background:white;cursor:pointer;font-size:13px;color:#ccc;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;}
+.delbtn:hover{background:var(--stop-bg);border-color:var(--stop-bd);color:var(--stop-bd);}
+
+/* info box */
+.infobox{background:var(--blue-bg);border:1px solid #90CAF9;border-radius:4px;padding:11px 14px;font-size:12px;color:#1a3a5c;margin-bottom:18px;line-height:1.6;}
+
+/* WEEK-END BANNER */
+.wendbanner{background:var(--dark);color:white;text-align:center;padding:32px;margin-top:36px;border-radius:5px;}
+.wendbanner h2{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:7px;}
+.wendbanner p{opacity:.68;font-style:italic;margin-bottom:16px;}
+.nwbtn{background:var(--red);color:white;border:none;padding:10px 24px;font-family:'Playfair Display',serif;font-size:13px;cursor:pointer;border-radius:3px;font-weight:700;}
+.nwbtn:hover{background:var(--accent);}
+
+/* PRIVACY */
+.privnote{font-size:11px;color:#aaa;text-align:center;padding:13px;border-top:1px solid var(--border);margin-top:36px;font-style:italic;}
+
+@media(max-width:600px){
+  .hinner{flex-direction:column;align-items:flex-start;}
+  .mcard{flex-direction:column;}
+  .mnamecol{width:auto;margin-bottom:9px;}
+  .frow2,.frow3{grid-template-columns:1fr;}
+  .addmember-row{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hinner">
+    <div class="hleft">
+      <div class="he">E</div>
+      <div><h1>Economist Reading Group</h1><p class="hsub">Weekly Article Tracker</p></div>
+    </div>
+    <div class="hright">
+      <div class="obadge">
+        <div class="ol">Reading Order</div>
+        <div class="on" id="orderDisplay">—</div>
+      </div>
+      <button class="memberbtn" onclick="mode='members';render()">⚙ 멤버 관리</button>
+    </div>
+  </div>
+  <div class="navwrap"><div class="wtabs" id="wtabs"></div></div>
+</header>
+<main>
+  <div id="pg"></div>
+  <div class="privnote">🔒 데이터는 이 브라우저 세션에만 저장됩니다. 서버 전송 없음.</div>
+</main>
+
+<script>
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+// members: [{name, absent}]  — order = reading order
+let members = [
+  {name:'HY',    absent:false},
+  {name:'CK',    absent:false},
+  {name:'Camila',absent:false},
+  {name:'Soojin',absent:false},
+  {name:'Hyelim',absent:false},
+  {name:'Min',   absent:true},
+  {name:'IK',    absent:false},
+  {name:'Hyunju',absent:false},
+  {name:'Joy',   absent:false},
+];
+
+let weeks = [];
+let curId  = '';
+let mode   = 'view';   // view | leader | input | new | members
+let uidN   = 1;
+const uid  = () => 'a'+(uidN++);
+
+// ══════════════════════════════════════════
+// MEMBER HELPERS
+// ══════════════════════════════════════════
+const activeMembers = () => members.filter(m=>!m.absent).map(m=>m.name);
+const allMemberNames = () => members.map(m=>m.name);
+
+function orderDisplayStr(){
+  return members.map(m=> m.absent ? `(${m.name})` : m.name ).join(' → ');
+}
+
+// ══════════════════════════════════════════
+// SEED DATA
+// ══════════════════════════════════════════
+function makeSeed(){
+  const a=(id,sec,sub,ttl,url,time,status='none')=>({id,section:sec,sub,title:ttl,url,time,status});
+  return [
+    { id:'w20260504', date:'May 4, 2026', entries:{
+        HY:[], CK:[], Camila:[], Soojin:[],
+        Hyelim:[
+          a('h1','Letters','A selection of correspondence','AI and the associated risks are challenging policymakers to develop regulations quickly','https://www.economist.com/letters/2026/04/30/ai-and-the-associated-risks-are-challenging-policymakers-to-develop-regulations-quickly','5min'),
+          a('h2','Science & technology','Epi-cures','Genome editing can be risky. Meet the epigenome editors','https://www.economist.com/science-and-technology/2026/04/29/genome-editing-can-be-risky-meet-the-epigenome-editors','7min'),
+          a('h3','Finance & economics','Buttonwood','A global fight over banking rules is just getting started','https://www.economist.com/finance-and-economics/2026/04/28/a-global-fight-over-banking-rules-is-just-getting-started','5min'),
+        ],
+        IK:[
+          a('i1','Business','Bartleby','AI and the danger of cognitive surrender','https://www.economist.com/business/2026/04/30/ai-and-the-danger-of-cognitive-surrender',''),
+          a('i2','International','Shipping','The global scramble for ports','https://www.economist.com/international/2026/04/30/the-global-scramble-for-ports',''),
+        ],
+        Hyunju:[],
+        Joy:[
+          a('j1','Leaders','Compute says no','The AI supply crunch is here','https://www.economist.com/leaders/2026/04/30/the-ai-supply-crunch-is-here','4min'),
+          a('j2','Science & technology','Hacking the hackers',"A glimpse into cyber-security's AI-driven future",'https://www.economist.com/science-and-technology/2026/04/29/a-glimpse-into-cyber-securitys-ai-driven-future','5min'),
+        ],
+    }},
+    { id:'w20260427', date:'April 27, 2026', entries:{
+        HY:[a('hy1','Culture','Back Story','In a new biopic, Michael Jackson is an eccentric saint. Yuck','https://www.economist.com/culture/2026/04/21/in-a-new-biopic-michael-jackson-is-an-eccentric-saint-yuck','4min','done')],
+        CK:[
+          a('ck1','Leaders','Our cover','America is vulnerable to electoral vandalism','https://www.economist.com/leaders/2026/04/23/america-is-vulnerable-to-electoral-vandalism','5min','done'),
+          a('ck2','China','Chaguan','The world wants Chinese tech. China is determined to keep it','https://www.economist.com/china/2026/04/20/the-world-wants-chinese-tech-china-is-determined-to-keep-it','5min','done'),
+        ],
+        Camila:[a('ca1','United States','Vote for Claude','Artificial intelligence is creeping into American lawmaking','https://www.economist.com/united-states/2026/04/23/artificial-intelligence-is-creeping-into-american-lawmaking','3min','done')],
+        Soojin:[
+          a('so1','Business','Altered state',"Donald Trump is giving psychedelic medicines a welcome boost",'https://www.economist.com/business/2026/04/23/donald-trump-is-giving-psychedelic-medicines-a-welcome-boost','3min','done'),
+          a('so2','United States','Immigration',"Donald Trump's bold new deportation machine",'https://www.economist.com/united-states/2026/04/22/donald-trumps-bold-new-deportation-machine','5min','done'),
+        ],
+        Hyelim:[
+          a('he1','China','Defying expectations',"Why China's exports will keep on rising",'https://www.economist.com/china/2026/04/21/why-chinas-exports-will-keep-on-rising','7min','done'),
+          a('he2','Finance & economics','The comfortable yuan',"Xi Jinping wants a powerful currency. America's war has helped",'https://www.economist.com/finance-and-economics/2026/04/23/xi-jinping-wants-a-powerful-currency-americas-war-has-helped','6min','done'),
+        ],
+        IK:[
+          a('ik1','Europe','The kriegstüchtig question','Can the Germans fight?','https://www.economist.com/europe/2026/04/22/can-the-germans-fight','5min','done'),
+          a('ik2','By Invitation','False prophets',"AI is the new Oracle of Delphi. That's bad news",'https://www.economist.com/by-invitation/2026/04/21/ai-is-the-new-oracle-of-delphi-thats-bad-news','5min','done'),
+        ],
+        Hyunju:[
+          a('hyu1','The Americas','A cup half-empty','As the World Cup approaches, North American relations are at a nadir','https://www.economist.com/the-americas/2026/04/23/as-the-world-cup-approaches-north-american-relations-are-at-a-nadir','5min','done'),
+          a('hyu2','Business','Mid-life crisis','From Allbirds to Glossier, millennial brands have lost their mojo','https://www.economist.com/business/2026/04/21/from-allbirds-to-glossier-millennial-brands-have-lost-their-mojo','3min','stopped'),
+        ],
+        Joy:[
+          a('jo1','International','Shooting to prominence','Anduril, Palantir and SpaceX are changing how America wages war','https://www.economist.com/international/2026/04/20/anduril-palantir-and-spacex-are-changing-how-america-wages-war','8min','done'),
+          a('jo2','Finance & economics','Buttonwood','The stablecoin market has got too stable','https://www.economist.com/finance-and-economics/2026/04/21/the-stablecoin-market-has-got-too-stable','4min','done'),
+        ],
+    }},
+    { id:'w20260420', date:'April 20, 2026', entries:{
+        HY:[a('hy20a','Leaders','Tax day mayday','America will come to regret its war on taxes','https://www.economist.com/leaders/2026/04/16/america-will-come-to-regret-its-war-on-taxes','','done')],
+        CK:[a('ck20a','Leaders','Our cover',"America wakes up to AI's dangerous power",'https://www.economist.com/leaders/2026/04/16/america-wakes-up-to-ais-dangerous-power','','done')],
+        Camila:[a('ca20a','Leaders',"Hungary's elections","Peter Magyar's victory will keep Hungary in the spotlight",'https://www.economist.com/leaders/2026/04/16/peter-magyars-victory-will-keep-hungary-in-the-spotlight','','done')],
+        Soojin:[a('so20a','China','Technological trade-offs',"Why China's government worries about AI",'https://www.economist.com/china/2026/04/16/why-chinas-government-worries-about-ai','','done')],
+        Hyelim:[
+          a('he20a','Finance & economics','Free Exchange',"Global imbalances are back. Who's to blame?",'https://www.economist.com/finance-and-economics/2026/04/16/global-imbalances-are-back-whos-to-blame','5min','done'),
+          a('he20b','Science & technology','Examining the Mythos','How AI hackers will shake up cyber-security','https://www.economist.com/science-and-technology/2026/04/15/how-ai-hackers-will-shake-up-cyber-security','5min','done'),
+          a('he20c','Leaders','A slow-motion tragedy','The impending global food shock is preventable','https://www.economist.com/leaders/2026/04/16/the-impending-global-food-shock-is-preventable','4min','done'),
+        ],
+        IK:[
+          a('ik20a','By Invitation','The big ask','Welcome to the world of machine audiences','https://www.economist.com/by-invitation/2026/04/16/welcome-to-the-world-of-machine-audiences','','done'),
+          a('ik20b','Business','Tycoon capitalism',"Could AI's leading men become as powerful as Ford or Rockefeller?",'https://www.economist.com/business/2026/04/16/could-ais-leading-men-become-as-powerful-as-ford-or-rockefeller','','done'),
+        ],
+        Hyunju:[
+          a('hyu20a','China','What women actually want','Soaring numbers of Chinese women demand divorce','https://www.economist.com/china/2026/04/16/soaring-numbers-of-chinese-women-demand-divorce','5min','done'),
+          a('hyu20b','International','Shooting for peace','The game theory behind violating ceasefires','https://www.economist.com/international/2026/04/16/the-game-theory-behind-violating-ceasefires','6min','done'),
+        ],
+        Joy:[
+          a('jo20a','United States','Bunker mentality','The big business of survival bunkers','https://www.economist.com/united-states/2026/04/16/the-big-business-of-survival-bunkers','2min','done'),
+          a('jo20b','Leaders','A slow-motion tragedy','The impending global food shock is preventable','https://www.economist.com/leaders/2026/04/16/the-impending-global-food-shock-is-preventable','4min','done'),
+        ],
+    }},
+  ];
+}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+const getW = id => weeks.find(w=>w.id===id);
+function getAllUrls(excludeId){
+  const s=new Set();
+  weeks.forEach(w=>{ if(w.id===excludeId)return; Object.values(w.entries).forEach(arts=>arts.forEach(a=>{if(a.url)s.add(a.url);})); });
+  return s;
+}
+function findDups(week){
+  const ex=getAllUrls(week.id); const d=[];
+  Object.entries(week.entries).forEach(([m,arts])=>arts.forEach(a=>{if(a.url&&ex.has(a.url))d.push({member:m,title:a.title});}));
+  return d;
+}
+function thurPast(dateStr){
+  const d=new Date(dateStr); if(isNaN(d))return false;
+  const day=d.getDay();
+  const mon=new Date(d); mon.setDate(d.getDate()+(day===0?-6:1-day));
+  const thu=new Date(mon); thu.setDate(mon.getDate()+3); thu.setHours(23,59,59,0);
+  return new Date()>thu;
+}
+const sc=s=>s==='today'?'st-today':s==='done'?'st-done':s==='stopped'?'st-stopped':'';
+const sl=s=>s==='today'?'📖 오늘 읽을':s==='done'?'✅ 완료':s==='stopped'?'⏸ 중단':'';
+const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;');
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+function renderTabs(){
+  const el=document.getElementById('wtabs'); el.innerHTML='';
+  weeks.forEach(w=>{
+    const t=document.createElement('div');
+    t.className='wt'+(w.id===curId&&mode!=='new'&&mode!=='members'?' active':'');
+    t.textContent=w.date;
+    t.onclick=()=>{curId=w.id;mode='view';render();};
+    el.appendChild(t);
+  });
+  const nt=document.createElement('div');
+  nt.className='wt newtab'+(mode==='new'?' active':'');
+  nt.textContent='+ 새 주차';
+  nt.onclick=()=>{mode='new';render();};
+  el.appendChild(nt);
+}
+
+function updateOrderDisplay(){
+  document.getElementById('orderDisplay').textContent = orderDisplayStr();
+}
+
+// ══════════════════════════════════════════
+// MAIN RENDER
+// ══════════════════════════════════════════
+function render(){
+  renderTabs();
+  updateOrderDisplay();
+  const el=document.getElementById('pg');
+  if(mode==='new'){ el.innerHTML=newWeekHTML(); return; }
+  if(mode==='members'){ el.innerHTML=membersHTML(); return; }
+  const w=getW(curId); if(!w)return;
+  if(mode==='input'){ el.innerHTML=inputHTML(w); return; }
+  el.innerHTML=viewHTML(w, mode==='leader');
+}
+
+// ══════════════════════════════════════════
+// VIEW / LEADER
+// ══════════════════════════════════════════
+function viewHTML(week, leaderMode){
+  const dups=findDups(week);
+  const dupTitles=new Set(dups.map(d=>d.title));
+  // order map from current members
+  const om={};
+  members.forEach((m,i)=>om[m.name]=i+1);
+
+  let h=`<div class="whead">
+    <div class="wdate">${esc(week.date)}</div>
+    <div class="wmeta">Weekly Edition</div>
+  </div>
+  <div class="modebar">
+    <button class="mbtn ${!leaderMode?'active':''}" onclick="mode='view';render()">전체 보기</button>
+    <div class="msep"></div>
+    <button class="mbtn" onclick="mode='input';render()">✏️ 아티클 입력</button>
+    <button class="mbtn leader" onclick="mode='leader';render()">🎯 리더 모드</button>
+  </div>`;
+
+  if(leaderMode){
+    h+=`<div style="background:#fff8e1;border:1px solid var(--today-bd);border-radius:4px;padding:9px 14px;margin-top:12px;font-size:12px;color:#7a6000;">
+      <strong>🎯 리더 모드</strong> — 각 아티클 상태를 클릭해서 설정하세요.
+    </div>`;
+  }
+  h+=`<div class="legend">
+    <span><span class="ldot" style="background:var(--today-bd)"></span>오늘 읽을</span>
+    <span><span class="ldot" style="background:var(--done-bd)"></span>완료</span>
+    <span><span class="ldot" style="background:var(--stop-bd)"></span>중단</span>
+  </div>`;
+  if(dups.length){
+    h+=`<div class="dupwarn" style="margin-top:12px;"><div class="wi">⚠️</div>
+      <div><strong>이전 주차와 중복된 아티클</strong>
+      ${dups.map(d=>`<div class="duprow">${esc(d.member)}: <em>${esc(d.title)}</em></div>`).join('')}
+      </div></div>`;
+  }
+
+  h+=`<div class="mgrid">`;
+  // render in member order — skip absent members (shown only in member settings)
+  let visibleIdx=0;
+  members.forEach((mbr,idx)=>{
+    if(mbr.absent) return;
+    visibleIdx++;
+    const m=mbr.name;
+    const arts=week.entries[m]||[];
+    h+=`<div class="mcard">
+      <div class="mnamecol">
+        <span class="mname">${esc(m)}</span>
+        <span class="mord">#${visibleIdx}</span>
+      </div>
+      <div class="artscol">`;
+    if(!arts.length){
+      h+=`<div style="color:#ccc;font-style:italic;font-size:12px;padding-left:11px;">미입력</div>`;
+    } else {
+      arts.forEach(a=>{
+        const isDup=dupTitles.has(a.title);
+        h+=`<div class="aitem ${sc(a.status)}" id="ai-${a.id}">
+          <div class="asec">${esc(a.section)}${a.sub?`<span class="asub"> / ${esc(a.sub)}</span>`:''}</div>
+          <div class="atitle">${a.url?`<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title)}</a>`:`<span>${esc(a.title)}</span>`}</div>
+          <div class="ameta">
+            ${a.time?`<span class="atime">${esc(a.time)}</span>`:''}
+            ${a.status&&a.status!=='none'?`<span class="sbadge ${a.status}">${sl(a.status)}</span>`:''}
+            ${isDup?`<span class="duptag">⚠ 중복</span>`:''}
+          </div>`;
+        if(leaderMode){
+          h+=`<div class="spicker">
+            <button class="spbtn sn${a.status==='none'?' sel':''}" onclick="setS('${week.id}','${m}','${a.id}','none')">미지정</button>
+            <button class="spbtn st${a.status==='today'?' sel':''}" onclick="setS('${week.id}','${m}','${a.id}','today')">📖 오늘 읽을</button>
+            <button class="spbtn sd${a.status==='done'?' sel':''}" onclick="setS('${week.id}','${m}','${a.id}','done')">✅ 다 읽음</button>
+            <button class="spbtn ss${a.status==='stopped'?' sel':''}" onclick="setS('${week.id}','${m}','${a.id}','stopped')">⏸ 중단</button>
+          </div>`;
+        }
+        h+=`</div>`;
+      });
+    }
+    h+=`</div></div>`;
+  });
+  h+=`</div>`;
+
+  if(thurPast(week.date)){
+    h+=`<div class="wendbanner">
+      <h2>이번 주 리딩 종료 🎉</h2>
+      <p>목요일 세션이 끝났습니다. 새 주차를 시작하세요.</p>
+      <button class="nwbtn" onclick="mode='new';render()">새 주차 입력하기 →</button>
+    </div>`;
+  }
+  return h;
+}
+
+function setS(wid,member,artId,status){
+  const w=getW(wid); if(!w)return;
+  const a=(w.entries[member]||[]).find(x=>x.id===artId);
+  if(a){a.status=status;} render();
+}
+
+// ══════════════════════════════════════════
+// INPUT PAGE
+// ══════════════════════════════════════════
+function inputHTML(week){
+  let h=`<div class="whead">
+    <div class="wdate">${esc(week.date)} — 아티클 입력</div>
+    <div class="wmeta"><button class="mbtn" onclick="mode='view';render()">← 돌아가기</button></div>
+  </div>
+  <div class="ipanel"><div class="iphead">📋 멤버별 아티클 입력</div>`;
+
+  members.forEach(mbr=>{
+    if(mbr.absent) return; // 일시휴가 멤버는 입력 화면에서도 숨김
+    const m=mbr.name;
+    const arts=week.entries[m]||[];
+    if(!week.entries[m]) week.entries[m]=[];
+    h+=`<div class="mib" id="mib-${m}">
+      <div class="mibh" id="mibh-${m}" onclick="togMib('${m}')">
+        <h3>${esc(m)}
+          <span id="mc-${m}" style="font-size:11px;color:#999;font-family:\'Source Serif 4\',serif;font-weight:400;">(${arts.length}개)</span>
+        </h3>
+        <span class="arr">▼</span>
+      </div>
+      <div class="mibb" id="mibb-${m}">
+        <div id="rows-${m}">`;
+    arts.forEach(a=>{ h+=artRowHTML(m,a); });
+    h+=`</div>
+        <button class="addbtn" onclick="addRow('${week.id}','${m}')">+ 아티클 추가</button>
+      </div></div>`;
+  });
+
+  h+=`<div id="idupwarn" style="display:none;" class="dupwarn">
+    <div class="wi">⚠️</div><div><strong>이전 주차와 중복된 아티클</strong><div id="iduplist"></div></div>
+  </div>
+  <div style="margin-top:16px;">
+    <button class="savebtn" onclick="saveInput()">저장 완료</button>
+    <button class="cancelbtn" onclick="mode='view';render()">취소</button>
+  </div></div>`;
+  return h;
+}
+
+function artRowHTML(member,a){
+  return `<div class="arow" id="row-${a.id}">
+    <button class="rmb" onclick="rmRow('${a.id}','${member}')">×</button>
+    <div class="frow2">
+      <div><label>섹션 (큰 제목)</label>
+        <input type="text" value="${esc(a.section)}" placeholder="예: Finance &amp; economics" data-f="section" data-id="${a.id}" data-m="${member}" oninput="lu(this)">
+      </div>
+      <div><label>서브타이틀</label>
+        <input type="text" value="${esc(a.sub)}" placeholder="예: Buttonwood" data-f="sub" data-id="${a.id}" data-m="${member}" oninput="lu(this)">
+      </div>
+    </div>
+    <label>아티클 제목</label>
+    <input type="text" value="${esc(a.title)}" placeholder="아티클 제목" data-f="title" data-id="${a.id}" data-m="${member}" oninput="lu(this);chkDup()">
+    <div class="frow2">
+      <div><label>링크 URL</label>
+        <input type="text" value="${esc(a.url)}" placeholder="https://www.economist.com/..." data-f="url" data-id="${a.id}" data-m="${member}" oninput="lu(this);chkDup()">
+      </div>
+      <div><label>읽기 시간</label>
+        <input type="text" value="${esc(a.time)}" placeholder="예: 5min" data-f="time" data-id="${a.id}" data-m="${member}" oninput="lu(this)">
+      </div>
+    </div>
+  </div>`;
+}
+
+function togMib(m){
+  const h=document.getElementById('mibh-'+m);
+  const b=document.getElementById('mibb-'+m);
+  if(!h||!b)return;
+  h.classList.toggle('open'); b.classList.toggle('open');
+}
+function lu(el){
+  const{f,id,m}=el.dataset; const w=getW(curId); if(!w)return;
+  const a=(w.entries[m]||[]).find(x=>x.id===id);
+  if(a)a[f]=el.value;
+}
+function addRow(wid,member){
+  const w=getW(wid); if(!w)return;
+  const a={id:uid(),section:'',sub:'',title:'',url:'',time:'',status:'none'};
+  if(!w.entries[member])w.entries[member]=[];
+  w.entries[member].push(a);
+  const c=document.getElementById('rows-'+member);
+  if(c){const d=document.createElement('div');d.innerHTML=artRowHTML(member,a);c.appendChild(d.firstElementChild);}
+  const mc=document.getElementById('mc-'+member);
+  if(mc)mc.textContent=`(${w.entries[member].length}개)`;
+  chkDup();
+}
+function rmRow(artId,member){
+  const w=getW(curId); if(!w)return;
+  w.entries[member]=(w.entries[member]||[]).filter(a=>a.id!==artId);
+  const r=document.getElementById('row-'+artId); if(r)r.remove();
+  const mc=document.getElementById('mc-'+member);
+  if(mc)mc.textContent=`(${w.entries[member].length}개)`;
+  chkDup();
+}
+function chkDup(){
+  const w=getW(curId); if(!w)return;
+  const dups=findDups(w);
+  const warn=document.getElementById('idupwarn');
+  const list=document.getElementById('iduplist');
+  if(!warn||!list)return;
+  if(dups.length){
+    list.innerHTML=dups.map(d=>`<div class="duprow">${esc(d.member)}: <em>${esc(d.title)}</em></div>`).join('');
+    warn.style.display='flex';
+  } else { warn.style.display='none'; }
+}
+function saveInput(){ mode='view'; render(); }
+
+// ══════════════════════════════════════════
+// NEW WEEK
+// ══════════════════════════════════════════
+function newWeekHTML(){
+  return `<div style="margin-top:22px;max-width:650px;">
+    <div class="iphead">＋ 새 주차 만들기</div>
+    <div style="margin-bottom:14px;">
+      <label>주차 날짜 <span style="font-size:9px;color:#aaa;">(예: May 11, 2026)</span></label>
+      <input type="text" id="nwdate" placeholder="May 11, 2026" style="max-width:280px;">
+    </div>
+    <p style="font-size:12px;color:var(--mid);font-style:italic;margin-bottom:18px;">
+      새 주차 생성 후, 각 멤버가 <strong>아티클 입력</strong> 모드에서 직접 입력합니다 (월요일 시작 전).<br>
+      <span style="color:var(--warn);">⚠ 이번 주, 지난 주, 지지난 주 — 최근 3주치만 유지됩니다. 새 주차를 만들면 가장 오래된 주차는 자동 삭제됩니다.</span>
+    </p>
+    <button class="savebtn" onclick="createWeek()">새 주차 생성</button>
+    <button class="cancelbtn" onclick="mode='view';curId=weeks[0].id;render()">취소</button>
+  </div>`;
+}
+function createWeek(){
+  const el=document.getElementById('nwdate');
+  const date=el?el.value.trim():'';
+  if(!date){alert('날짜를 입력해주세요.');return;}
+  const newId='w'+Date.now();
+  const entries={};
+  allMemberNames().forEach(m=>{entries[m]=[];});
+  weeks.unshift({id:newId,date,entries});
+  // 최대 3주치만 유지 — 가장 오래된 주차 자동 삭제
+  if(weeks.length>3) weeks=weeks.slice(0,3);
+  curId=newId; mode='input'; render();
+}
+
+// ══════════════════════════════════════════
+// MEMBER SETTINGS PAGE
+// ══════════════════════════════════════════
+function membersHTML(){
+  let h=`<div class="settingspage">
+    <div class="whead" style="margin-top:20px;">
+      <div class="wdate">⚙ 멤버 관리</div>
+      <div class="wmeta"><button class="mbtn" onclick="mode='view';render()">← 돌아가기</button></div>
+    </div>
+    <div class="infobox" style="margin-top:16px;">
+      ℹ️ 읽기 순서 = 아래 목록 순서입니다. <strong>위/아래 버튼</strong>으로 순서를 바꾸고, <strong>일시 휴가</strong> 토글로 잠시 제외할 수 있어요. 멤버를 삭제하면 기존 입력 데이터는 유지됩니다.
+    </div>
+
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--mid);margin-bottom:8px;">멤버 순서 & 상태</div>
+    <div class="orderlist" id="orderlist">`;
+
+  members.forEach((mbr,i)=>{
+    h+=`<div class="orderitem" id="oi-${i}">
+      <div class="onum">${i+1}</div>
+      <div class="oname" id="oname-${i}">
+        <input type="text" value="${esc(mbr.name)}" style="border:none;background:transparent;font-family:'Playfair Display',serif;font-size:15px;color:var(--dark);width:110px;padding:2px 4px;border-bottom:1.5px solid transparent;outline:none;" 
+          onfocus="this.style.borderBottomColor='var(--red)'"
+          onblur="renameMember(${i},this.value);this.style.borderBottomColor='transparent'"
+          title="클릭해서 이름 수정">
+      </div>
+      <div class="absent-toggle">
+        <label class="toggle-sw">
+          <input type="checkbox" ${mbr.absent?'checked':''} onchange="toggleAbsent(${i},this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+        <span style="font-size:10px;">${mbr.absent?'<span style="color:var(--warn);font-weight:700;">일시 휴가</span>':'정상 참여'}</span>
+      </div>
+      <div class="move-btns">
+        <button class="movebtn" onclick="moveUp(${i})" ${i===0?'disabled':''} title="위로">▲</button>
+        <button class="movebtn" onclick="moveDown(${i})" ${i===members.length-1?'disabled':''} title="아래로">▼</button>
+      </div>
+      <button class="delbtn" onclick="deleteMember(${i})" title="멤버 삭제">✕</button>
+    </div>`;
+  });
+
+  h+=`</div>
+
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--mid);margin:20px 0 8px;">새 멤버 추가</div>
+    <div class="addmember-row">
+      <div style="flex:1;min-width:160px;">
+        <label style="margin-bottom:4px;">이름</label>
+        <input type="text" id="newMemberName" placeholder="예: Sarah">
+      </div>
+      <div>
+        <label style="margin-bottom:4px;">순서 위치</label>
+        <select id="newMemberPos">
+          ${members.map((m,i)=>`<option value="${i}">${i+1}번째 앞 (${esc(m.name)} 앞)</option>`).join('')}
+          <option value="${members.length}" selected>맨 마지막</option>
+        </select>
+      </div>
+      <button class="addbtn2" onclick="addMember()">+ 추가</button>
+    </div>
+
+    <div style="font-size:12px;color:var(--mid);margin-top:6px;font-style:italic;">
+      현재 읽기 순서: <strong>${orderDisplayStr()}</strong>
+    </div>
+  </div>`;
+
+  return h;
+}
+
+function renameMember(idx, newName){
+  newName = newName.trim();
+  if(!newName) return;
+  const oldName = members[idx].name;
+  if(oldName === newName) return;
+  // check duplicate
+  if(members.some((m,i)=>i!==idx&&m.name===newName)){
+    alert(`'${newName}'은 이미 있는 이름입니다.`); render(); return;
+  }
+  // rename in all weeks
+  weeks.forEach(w=>{
+    if(w.entries[oldName]!==undefined){
+      w.entries[newName]=w.entries[oldName];
+      delete w.entries[oldName];
+    }
+  });
+  members[idx].name=newName;
+  render();
+}
+
+function toggleAbsent(idx, val){
+  members[idx].absent=val;
+  render();
+}
+
+function moveUp(idx){
+  if(idx===0)return;
+  [members[idx-1],members[idx]]=[members[idx],members[idx-1]];
+  render();
+}
+function moveDown(idx){
+  if(idx>=members.length-1)return;
+  [members[idx],members[idx+1]]=[members[idx+1],members[idx]];
+  render();
+}
+
+function deleteMember(idx){
+  const name=members[idx].name;
+  const hasData=weeks.some(w=>(w.entries[name]||[]).length>0);
+  const msg=hasData
+    ?`'${name}'을 삭제하면 멤버 목록에서 제거되지만, 기존 입력 데이터는 유지됩니다. 계속하시겠어요?`
+    :`'${name}'을 멤버 목록에서 삭제하시겠어요?`;
+  if(!confirm(msg))return;
+  members.splice(idx,1);
+  render();
+}
+
+function addMember(){
+  const nameEl=document.getElementById('newMemberName');
+  const posEl=document.getElementById('newMemberPos');
+  const name=(nameEl?nameEl.value.trim():'');
+  if(!name){alert('이름을 입력해주세요.');return;}
+  if(members.some(m=>m.name===name)){alert(`'${name}'은 이미 있는 이름입니다.`);return;}
+  const pos=posEl?parseInt(posEl.value):members.length;
+  members.splice(pos,0,{name,absent:false});
+  // add empty entries to all weeks
+  weeks.forEach(w=>{ if(!w.entries[name]) w.entries[name]=[]; });
+  render();
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+weeks=makeSeed().slice(0,3);  // 최대 3주치만 유지
+curId=weeks[0].id;
+render();
+</script>
+</body>
+</html>
