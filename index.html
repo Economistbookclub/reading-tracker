@@ -275,14 +275,24 @@ function orderDisplayStr(){
 // HELPERS
 // ══════════════════════════════════════════
 const getW  = id => weeks.find(w=>w.id===id);
-function getAllUrls(excludeId){
-  const s=new Set();
-  weeks.forEach(w=>{ if(w.id===excludeId)return; Object.values(w.entries).forEach(arts=>arts.forEach(a=>{if(a.url)s.add(a.url);})); });
-  return s;
+function getAllArticles(excludeId){
+  const urls=new Set(); const titles=new Set();
+  weeks.forEach(w=>{
+    if(w.id===excludeId)return;
+    Object.values(w.entries).forEach(arts=>arts.forEach(a=>{
+      if(a.url && a.url.trim()) urls.add(a.url.trim());
+      if(a.title && a.title.trim()) titles.add(a.title.trim());
+    }));
+  });
+  return {urls, titles};
 }
 function findDups(week){
-  const ex=getAllUrls(week.id); const d=[];
-  Object.entries(week.entries).forEach(([m,arts])=>arts.forEach(a=>{if(a.url&&ex.has(a.url))d.push({member:m,title:a.title});}));
+  const {urls,titles}=getAllArticles(week.id); const d=[];
+  Object.entries(week.entries).forEach(([m,arts])=>arts.forEach(a=>{
+    const urlMatch = a.url && a.url.trim() && urls.has(a.url.trim());
+    const titleMatch = a.title && a.title.trim() && titles.has(a.title.trim());
+    if(urlMatch||titleMatch) d.push({member:m,title:a.title,reason:urlMatch?'URL 중복':'제목 중복'});
+  }));
   return d;
 }
 function thurPast(dateStr){
@@ -423,7 +433,7 @@ function viewHTML(week, leaderMode){
   if(dups.length){
     h+=`<div class="dupwarn" style="margin-top:12px;"><div class="wi">⚠️</div>
       <div><strong>이전 주차와 중복된 아티클</strong>
-      ${dups.map(d=>`<div class="duprow">${esc(d.member)}: <em>${esc(d.title)}</em></div>`).join('')}
+      ${dups.map(d=>`<div class="duprow">${esc(d.member)}: <em>${esc(d.title)}</em> <span style="color:var(--warn);font-size:10px;">(${d.reason||'중복'})</span></div>`).join('')}
       </div></div>`;
   }
 
@@ -511,16 +521,19 @@ function inputHTML(week){
         <div id="rows-${m}">`;
     arts.forEach(a=>{ h+=artRowHTML(m,a); });
     h+=`</div>
-        <button class="addbtn" onclick="addRow('${week.id}','${m}')">+ 아티클 추가</button>
+        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
+          <button class="addbtn" style="flex:1;margin-top:0;" onclick="addRow('${week.id}','${m}')">+ 아티클 추가</button>
+          <button class="savebtn" style="padding:7px 16px;font-size:12px;margin-top:0;" onclick="saveMember('${week.id}','${m}',this)">💾 입력 완료</button>
+        </div>
+        <div id="msaved-${m}" style="display:none;font-size:11px;color:var(--done-bd);margin-top:5px;font-weight:600;">✅ 저장됨</div>
       </div></div>`;
   });
 
   h+=`<div id="idupwarn" style="display:none;" class="dupwarn">
     <div class="wi">⚠️</div><div><strong>이전 주차와 중복된 아티클</strong><div id="iduplist"></div></div>
   </div>
-  <div style="margin-top:16px;">
-    <button class="savebtn" id="saveInputBtn" onclick="saveInput('${week.id}')">저장 완료</button>
-    <button class="cancelbtn" onclick="mode='view';render()">취소</button>
+  <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+    <button class="cancelbtn" style="background:var(--mid);" onclick="mode='view';render()">← 보기로 돌아가기</button>
   </div></div>`;
   return h;
 }
@@ -599,6 +612,41 @@ function chkDup(){
     list.innerHTML=dups.map(d=>`<div class="duprow">${esc(d.member)}: <em>${esc(d.title)}</em></div>`).join('');
     warn.style.display='flex';
   } else { warn.style.display='none'; }
+}
+
+async function saveMember(wid, member, btn){
+  const w=getW(wid); if(!w)return;
+  const arts=w.entries[member]||[];
+  if(!arts.length){ alert(member+'의 아티클을 먼저 입력해주세요.'); return; }
+  // check for empty titles
+  const empty=arts.filter(a=>!a.title.trim());
+  if(empty.length){ alert('제목이 비어있는 아티클이 있어요!'); return; }
+
+  btn.disabled=true; btn.textContent='저장중...';
+  setSyncBadge('loading');
+  try {
+    // delete existing articles for this member+week then reinsert
+    await sbDel('articles','week_id=eq.'+wid+'&member=eq.'+encodeURIComponent(member));
+    const rows=arts.map(a=>({
+      id:a.id, week_id:wid, member,
+      section:a.section||'', sub:a.sub||'',
+      title:a.title||'', url:a.url||'',
+      time:a.time||'', status:a.status||'none'
+    }));
+    if(rows.length) await sbUpsert('articles', rows);
+    arts.forEach(a=>delete a.isNew);
+    setSyncBadge('ok');
+    btn.textContent='✅ 완료!';
+    btn.style.background='var(--done-bd)';
+    const saved=document.getElementById('msaved-'+member);
+    if(saved) saved.style.display='block';
+    // check dups after save
+    chkDup();
+  } catch(e){
+    console.error(e); setSyncBadge('err');
+    btn.disabled=false; btn.textContent='💾 입력 완료';
+    alert('저장 중 오류가 발생했습니다.');
+  }
 }
 
 async function saveInput(wid){
