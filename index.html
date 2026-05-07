@@ -276,6 +276,7 @@ function orderDisplayStr(){
 // ══════════════════════════════════════════
 const getW  = id => weeks.find(w=>w.id===id);
 function getAllArticles(excludeId){
+  // 이전 주차 아티클 수집
   const urls=new Set(); const titles=new Set();
   weeks.forEach(w=>{
     if(w.id===excludeId)return;
@@ -287,12 +288,48 @@ function getAllArticles(excludeId){
   return {urls, titles};
 }
 function findDups(week){
-  const {urls,titles}=getAllArticles(week.id); const d=[];
+  const {urls,titles}=getAllArticles(week.id);
+  const d=[];
+
+  // 이전 주차 중복 체크
   Object.entries(week.entries).forEach(([m,arts])=>arts.forEach(a=>{
     const urlMatch = a.url && a.url.trim() && urls.has(a.url.trim());
     const titleMatch = a.title && a.title.trim() && titles.has(a.title.trim());
-    if(urlMatch||titleMatch) d.push({member:m,title:a.title,reason:urlMatch?'URL 중복':'제목 중복'});
+    if(urlMatch||titleMatch) d.push({member:m, title:a.title, reason:(urlMatch?'URL':'제목')+' 중복 (이전 주차)'});
   }));
+
+  // 같은 주차 내 멤버간 중복 체크
+  const sameWeekUrls={}; const sameWeekTitles={};
+  Object.entries(week.entries).forEach(([m,arts])=>arts.forEach(a=>{
+    if(a.url && a.url.trim()){
+      if(!sameWeekUrls[a.url.trim()]) sameWeekUrls[a.url.trim()]=[];
+      sameWeekUrls[a.url.trim()].push(m);
+    }
+    if(a.title && a.title.trim()){
+      if(!sameWeekTitles[a.title.trim()]) sameWeekTitles[a.title.trim()]=[];
+      sameWeekTitles[a.title.trim()].push(m);
+    }
+  }));
+  // URL 중복
+  Object.entries(sameWeekUrls).forEach(([url,mList])=>{
+    if(mList.length>1){
+      mList.forEach(m=>{
+        const a=(week.entries[m]||[]).find(x=>x.url&&x.url.trim()===url);
+        if(a && !d.find(x=>x.member===m&&x.title===a.title))
+          d.push({member:m, title:a.title, reason:`URL 중복 (${mList.filter(x=>x!==m).join(', ')}와 겹침)`});
+      });
+    }
+  });
+  // 제목 중복
+  Object.entries(sameWeekTitles).forEach(([title,mList])=>{
+    if(mList.length>1){
+      mList.forEach(m=>{
+        if(!d.find(x=>x.member===m&&x.title===title))
+          d.push({member:m, title, reason:`제목 중복 (${mList.filter(x=>x!==m).join(', ')}와 겹침)`});
+      });
+    }
+  });
+
   return d;
 }
 function thurPast(dateStr){
