@@ -560,7 +560,7 @@ function inputHTML(week){
     h+=`</div>
         <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
           <button class="addbtn" style="flex:1;margin-top:0;" onclick="addRow('${week.id}','${m}')">+ 아티클 추가</button>
-          <button class="savebtn" style="padding:7px 16px;font-size:12px;margin-top:0;" onclick="saveMember('${week.id}','${m}',this)">💾 입력 완료</button>
+          <button class="savebtn" style="padding:7px 16px;font-size:12px;margin-top:0;" id="savebtn-${m}" onclick="saveMember('${week.id}','${m}')">💾 입력 완료</button>
         </div>
         <div id="msaved-${m}" style="display:none;font-size:11px;color:var(--done-bd);margin-top:5px;font-weight:600;">✅ 저장됨</div>
       </div></div>`;
@@ -587,10 +587,11 @@ function artRowHTML(member,a){
       </div>
     </div>
     <label>아티클 제목</label>
-    <input type="text" value="${esc(a.title)}" placeholder="아티클 제목" data-f="title" data-id="${a.id}" data-m="${member}" oninput="lu(this);chkDup()">
+    <input type="text" value="${esc(a.title)}" placeholder="아티클 제목" data-f="title" data-id="${a.id}" data-m="${member}" oninput="lu(this);chkDupInline('${a.id}',this.value,'')">
+    <div id="dupinline-${a.id}" style="display:none;background:var(--warn-bg);border:1px solid var(--warn);border-radius:3px;padding:5px 9px;font-size:11px;color:var(--warn);margin-top:3px;font-weight:600;"></div>
     <div class="frow2">
       <div><label>링크 URL</label>
-        <input type="text" value="${esc(a.url)}" placeholder="https://www.economist.com/..." data-f="url" data-id="${a.id}" data-m="${member}" oninput="lu(this);chkDup()">
+        <input type="text" value="${esc(a.url)}" placeholder="https://www.economist.com/..." data-f="url" data-id="${a.id}" data-m="${member}" oninput="lu(this);chkDupInline('${a.id}','',this.value)">
       </div>
       <div><label>읽기 시간</label>
         <input type="text" value="${esc(a.time)}" placeholder="예: 5min" data-f="time" data-id="${a.id}" data-m="${member}" oninput="lu(this)">
@@ -646,20 +647,82 @@ function chkDup(){
   const list=document.getElementById('iduplist');
   if(!warn||!list)return;
   if(dups.length){
-    list.innerHTML=dups.map(d=>`<div class="duprow">${esc(d.member)}: <em>${esc(d.title)}</em></div>`).join('');
+    list.innerHTML=dups.map(d=>`<div class="duprow">${esc(d.member)}: <em>${esc(d.title)}</em> <span style="color:var(--warn);font-size:10px;">(${d.reason||'중복'})</span></div>`).join('');
     warn.style.display='flex';
   } else { warn.style.display='none'; }
 }
 
-async function saveMember(wid, member, btn){
+function chkDupInline(artId, newTitle, newUrl){
+  // get current week
+  const w=getW(curId); if(!w)return;
+  // find the article and update value first
+  for(const [m,arts] of Object.entries(w.entries)){
+    const a=arts.find(x=>x.id===artId);
+    if(a){
+      if(newTitle) a.title=newTitle;
+      if(newUrl) a.url=newUrl;
+      break;
+    }
+  }
+  // now check dups for this specific article
+  const {urls,titles}=getAllArticles(w.id);
+  // also check same-week
+  const sameWeekTitles={};
+  const sameWeekUrls={};
+  Object.entries(w.entries).forEach(([m,arts])=>arts.forEach(a=>{
+    if(a.title&&a.title.trim()){
+      if(!sameWeekTitles[a.title.trim()]) sameWeekTitles[a.title.trim()]=[];
+      sameWeekTitles[a.title.trim()].push({m,id:a.id});
+    }
+    if(a.url&&a.url.trim()){
+      if(!sameWeekUrls[a.url.trim()]) sameWeekUrls[a.url.trim()]=[];
+      sameWeekUrls[a.url.trim()].push({m,id:a.id});
+    }
+  }));
+
+  const el=document.getElementById('dupinline-'+artId); if(!el)return;
+  // find current article
+  let curTitle='', curUrl='', curMember='';
+  for(const [m,arts] of Object.entries(w.entries)){
+    const a=arts.find(x=>x.id===artId);
+    if(a){curTitle=a.title||'';curUrl=a.url||'';curMember=m;break;}
+  }
+
+  let msg='';
+  if(curTitle.trim() && titles.has(curTitle.trim())) msg='⚠️ 이전 주차에 같은 제목이 있어요!';
+  else if(curUrl.trim() && urls.has(curUrl.trim())) msg='⚠️ 이전 주차에 같은 URL이 있어요!';
+  else if(curTitle.trim() && sameWeekTitles[curTitle.trim()] && sameWeekTitles[curTitle.trim()].filter(x=>x.id!==artId).length>0){
+    const others=sameWeekTitles[curTitle.trim()].filter(x=>x.id!==artId).map(x=>x.m);
+    msg='⚠️ 이번 주 '+others.join(', ')+'와 제목이 겹쳐요!';
+  }
+  else if(curUrl.trim() && sameWeekUrls[curUrl.trim()] && sameWeekUrls[curUrl.trim()].filter(x=>x.id!==artId).length>0){
+    const others=sameWeekUrls[curUrl.trim()].filter(x=>x.id!==artId).map(x=>x.m);
+    msg='⚠️ 이번 주 '+others.join(', ')+'와 URL이 겹쳐요!';
+  }
+
+  if(msg){ el.textContent=msg; el.style.display='block'; }
+  else { el.style.display='none'; }
+
+  // also update global dup warning
+  chkDup();
+}
+
+async function saveMember(wid, member){
   const w=getW(wid); if(!w)return;
   const arts=w.entries[member]||[];
   if(!arts.length){ alert(member+'의 아티클을 먼저 입력해주세요.'); return; }
-  // check for empty titles
   const empty=arts.filter(a=>!a.title.trim());
   if(empty.length){ alert('제목이 비어있는 아티클이 있어요!'); return; }
 
-  btn.disabled=true; btn.textContent='저장중...';
+  // 중복 있으면 저장 막기
+  const dups=findDups(w).filter(d=>d.member===member);
+  if(dups.length){
+    alert('⚠️ 중복된 아티클이 있어요!\n\n'+dups.map(d=>'• '+d.title+' ('+d.reason+')').join('\n')+'\n\n중복을 해결한 후 다시 시도해주세요.');
+    return;
+  }
+
+  const btn=document.getElementById('savebtn-'+member);
+  if(btn){ btn.disabled=true; btn.textContent='저장중...'; }
   setSyncBadge('loading');
   try {
     // delete existing articles for this member+week then reinsert
