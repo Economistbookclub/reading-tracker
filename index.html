@@ -336,8 +336,9 @@ function thurPast(dateStr){
   const d=new Date(dateStr); if(isNaN(d))return false;
   const day=d.getDay();
   const mon=new Date(d); mon.setDate(d.getDate()+(day===0?-6:1-day));
-  const thu=new Date(mon); thu.setDate(mon.getDate()+3); thu.setHours(23,59,59,0);
-  return new Date()>thu;
+  // 금요일(mon+4) 12시 05분 이후에 종료 배너 표시
+  const fri=new Date(mon); fri.setDate(mon.getDate()+4); fri.setHours(12,5,0,0);
+  return new Date()>fri;
 }
 const sc=s=>s==='today'?'st-today':s==='done'?'st-done':s==='stopped'?'st-stopped':'';
 const sl=s=>s==='today'?'📖 오늘 읽을':s==='done'?'✅ 완료':s==='stopped'?'⏸ 중단':'';
